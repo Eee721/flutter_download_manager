@@ -34,7 +34,7 @@ class DownloadManager {
       (int received, int total) {
         getDownload(url)?.progress.value =
             (received + partialFileLength) / (total + partialFileLength);
-        getDownload(url)?.onReceived?.call(total + partialFileLength,partialFileLength,received,total);
+        getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total);
 
         if (total == -1) {}
       };
