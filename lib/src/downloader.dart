@@ -196,6 +196,8 @@ class DownloadManager {
     return task;
   }
 
+  // static int bufferSize = 1024*1024*8;
+  // List<int> copyBuffer = List<int>.filled(bufferSize, 0);
   Future tryCombineTempFile(String url) async {
     var task = getDownload(url);
     if (task == null || task.status.value == DownloadStatus.canceled || task.status.value == DownloadStatus.completed) {
@@ -209,15 +211,28 @@ class DownloadManager {
 
     // var fileExist = await file.exists();
     var partialFileExist = await partialFile.exists();
+    var _f = File(partialFilePath + tempExtension);
+    if (partialFileExist && _f.existsSync()) {
+      // var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
+      // await ioSink.addStream(_f.openRead());
+      // await _f.delete();
+      // await ioSink.close();
 
-    if (partialFileExist) {
-      var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
-      var _f = File(partialFilePath + tempExtension);
-      if (_f.existsSync()) {
-        await ioSink.addStream(_f.openRead());
-        await _f.delete();
-        await ioSink.close();
-      }
+      // var rds = _f.openSync(mode: FileMode.read);
+      // RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
+      // int iLength = 0;
+      // do{
+      //   iLength = rds.readIntoSync(copyBuffer);
+      //   raw.writeFromSync(copyBuffer , 0,iLength);
+      // } while (iLength >0);
+      // rds.closeSync();
+      // raw.flushSync();
+      // raw.closeSync();
+
+      RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
+      raw.writeFromSync(_f.readAsBytesSync());
+      raw.close();
+      _f.deleteSync();
     }
   }
   Future<void> pauseDownload(String url) async {
