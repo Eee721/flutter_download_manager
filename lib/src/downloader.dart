@@ -87,6 +87,8 @@ class DownloadManager {
         if (kDebugMode) {
           print("Partial File Exists");
         }
+        //追加 temp
+        await tryCombineTempFile(url);
 
         var partialFileLength = await partialFile.length();
 
@@ -194,7 +196,7 @@ class DownloadManager {
     return task;
   }
 
-  void tryCombineTempFile(String url) async {
+  Future tryCombineTempFile(String url) async {
     var task = getDownload(url);
     if (task == null || task.status.value == DownloadStatus.canceled || task.status.value == DownloadStatus.completed) {
       return;
@@ -227,7 +229,7 @@ class DownloadManager {
     task.request.cancelToken.cancel();
     _queue.remove(task.request);
 
-    tryCombineTempFile(url);
+    await tryCombineTempFile(url);
   }
 
   Future<void> cancelDownload(String url) async {
