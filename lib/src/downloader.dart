@@ -34,16 +34,23 @@ class DownloadManager {
   void Function(int, int) createCallback(url, int partialFileLength) {
     int _speedCount = 0;
     int _speed = 0;
-    Timer.periodic(const Duration(seconds: 1), (timer) {
+    var timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _speed = _speedCount;
       _speedCount = 0 ;
     });
+    var lastReceived = 0;
     var res =  (int received, int total) {
-      _speedCount += received;
+      _speedCount += (received - lastReceived);
+      lastReceived = received;
+
       getDownload(url)?.progress.value =
           (received + partialFileLength) / (total + partialFileLength);
+      print(_speed);
       getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total , _speed);
 
+      if (received >= total){
+        timer.cancel();
+      }
       if (total == -1) {}
     };
 
