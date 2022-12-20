@@ -30,14 +30,26 @@ class DownloadManager {
     return _dm;
   }
 
-  void Function(int, int) createCallback(url, int partialFileLength) =>
-      (int received, int total) {
-        getDownload(url)?.progress.value =
-            (received + partialFileLength) / (total + partialFileLength);
-        getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total);
 
-        if (total == -1) {}
-      };
+  void Function(int, int) createCallback(url, int partialFileLength) {
+    int _speedCount = 0;
+    int _speed = 0;
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      _speed = _speedCount;
+      _speedCount = 0 ;
+    });
+    var res =  (int received, int total) {
+      _speedCount += received;
+      getDownload(url)?.progress.value =
+          (received + partialFileLength) / (total + partialFileLength);
+      getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total , _speed);
+
+      if (total == -1) {}
+    };
+
+    return res;
+  }
+
 
   Future<void> download(String url, String savePath, cancelToken,
       {forceDownload = false}) async {
