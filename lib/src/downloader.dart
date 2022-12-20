@@ -46,7 +46,7 @@ class DownloadManager {
       getDownload(url)?.progress.value =
           (received + partialFileLength) / (total + partialFileLength);
       print(_speed);
-      getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total , _speed);
+      getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total , _speed>0?_speed:_speedCount);
 
       if (received >= total){
         timer.cancel();
