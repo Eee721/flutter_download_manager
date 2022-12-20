@@ -96,7 +96,7 @@ class DownloadManager {
               headers: {HttpHeaders.rangeHeader: 'bytes=$partialFileLength-'},
             ),
             cancelToken: cancelToken,
-            deleteOnError: true);
+            deleteOnError: false );
 
         if (response.statusCode == HttpStatus.partialContent) {
           var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
@@ -225,9 +225,9 @@ class DownloadManager {
     var task = getDownload(url)!;
     setStatus(task, DownloadStatus.paused);
     task.request.cancelToken.cancel();
-    tryCombineTempFile(url);
-
     _queue.remove(task.request);
+
+    tryCombineTempFile(url);
   }
 
   Future<void> cancelDownload(String url) async {
