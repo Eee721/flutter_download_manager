@@ -194,6 +194,30 @@ class DownloadManager {
     return task;
   }
 
+  void tryCombineTempFile(String url) async {
+    var task = getDownload(url);
+    if (task == null || task.status.value == DownloadStatus.canceled || task.status.value == DownloadStatus.completed) {
+      return;
+    }
+    var savePath = task.request.path;
+    if (savePath.isEmpty) return ;
+    var file = File(savePath.toString());
+    var partialFilePath = savePath + partialExtension;
+    var partialFile = File(partialFilePath);
+
+    // var fileExist = await file.exists();
+    var partialFileExist = await partialFile.exists();
+
+    if (partialFileExist) {
+      var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
+      var _f = File(partialFilePath + tempExtension);
+      if (_f.existsSync()) {
+        await ioSink.addStream(_f.openRead());
+        await _f.delete();
+        await ioSink.close();
+      }
+    }
+  }
   Future<void> pauseDownload(String url) async {
     if (kDebugMode) {
       print("Pause Download");
@@ -201,6 +225,7 @@ class DownloadManager {
     var task = getDownload(url)!;
     setStatus(task, DownloadStatus.paused);
     task.request.cancelToken.cancel();
+    tryCombineTempFile(url);
 
     _queue.remove(task.request);
   }
