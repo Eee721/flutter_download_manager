@@ -14,6 +14,7 @@ class DownloadManager {
   static const partialExtension = ".partial";
   static const tempExtension = ".temp";
 
+
   // var tasks = StreamController<DownloadTask>();
 
   int maxConcurrentTasks = 2;
@@ -123,7 +124,17 @@ class DownloadManager {
       }
     } catch (e) {
       var task = getDownload(url)!;
-      print(e.toString());
+      // print(e.toString());
+
+      if (e is DioError){
+        if (e.error == "user_paused"){
+          setStatus(task, DownloadStatus.paused);
+        }
+        else if (e.error == "user_cancel"){
+          setStatus(task, DownloadStatus.canceled);
+        }
+      }
+
       if (task.status.value != DownloadStatus.canceled &&
           task.status.value != DownloadStatus.paused) {
         setStatus(task, DownloadStatus.failed);
@@ -192,55 +203,23 @@ class DownloadManager {
 
     _cache[downloadRequest.url] = task;
 
-    _startExecution();
+    // _startExecution();
 
     return task;
   }
 
-  // static int bufferSize = 1024*1024*8;
-  // List<int> copyBuffer = List<int>.filled(bufferSize, 0);
-  // Future tryCombineTempFile(String url) async {
-  //   var task = getDownload(url);
-  //   if (task == null || task.status.value == DownloadStatus.canceled || task.status.value == DownloadStatus.completed) {
-  //     return;
-  //   }
-  //   var savePath = task.request.path;
-  //   if (savePath.isEmpty) return ;
-  //   var file = File(savePath.toString());
-  //   var partialFilePath = savePath + partialExtension;
-  //   var partialFile = File(partialFilePath);
-  //
-  //   // var fileExist = await file.exists();
-  //   var partialFileExist = await partialFile.exists();
-  //   var _f = File(partialFilePath + tempExtension);
-  //   if (partialFileExist && _f.existsSync()) {
-  //     // var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
-  //     // await ioSink.addStream(_f.openRead());
-  //     // await _f.delete();
-  //     // await ioSink.close();
-  //
-  //     // var rds = _f.openSync(mode: FileMode.read);
-  //     // RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
-  //     // int iLength = 0;
-  //     // do{
-  //     //   iLength = rds.readIntoSync(copyBuffer);
-  //     //   raw.writeFromSync(copyBuffer , 0,iLength);
-  //     // } while (iLength >0);
-  //     // rds.closeSync();
-  //     // raw.flushSync();
-  //     // raw.closeSync();
-  //
-  //     RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
-  //     raw.writeFromSync(_f.readAsBytesSync());
-  //     raw.close();
-  //     _f.deleteSync();
-  //   }
-  // }
+  void startDownload(){
+    _startExecution();
+  }
+
   Future<void> pauseDownload(String url) async {
     if (kDebugMode) {
       print("Pause Download");
     }
     var task = getDownload(url)!;
+    if (DownloadStatus.downloading != task.status.value){
+      return ;
+    }
     // setStatus(task, DownloadStatus.paused);
     task.request.cancelToken.cancel("user_paused");
     _queue.remove(task.request);
@@ -254,8 +233,10 @@ class DownloadManager {
     }
     var task = getDownload(url)!;
     // setStatus(task, DownloadStatus.canceled);
-    _queue.remove(task.request);
-    task.request.cancelToken.cancel("user_cancel");
+    if (DownloadStatus.downloading == task.status.value){
+      _queue.remove(task.request);
+      task.request.cancelToken.cancel("user_cancel");
+    }
 
     _cache.remove(url);
   }
@@ -265,7 +246,11 @@ class DownloadManager {
       print("Resume Download");
     }
     var task = getDownload(url)!;
-    setStatus(task, DownloadStatus.downloading);
+    if (DownloadStatus.paused != task.status.value &&
+        DownloadStatus.queued != task.status.value){
+      return ;
+    }
+    // setStatus(task, DownloadStatus.downloading);
     task.request.cancelToken = CancelToken();
     _queue.add(task.request);
 
