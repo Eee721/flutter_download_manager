@@ -87,12 +87,12 @@ class DownloadManager {
         if (kDebugMode) {
           print("Partial File Exists");
         }
-        //追加 temp
-        await tryCombineTempFile(url);
+        // //追加 temp
+        // await tryCombineTempFile(url);
 
         var partialFileLength = await partialFile.length();
 
-        var response = await dio.download(url, partialFilePath + tempExtension,
+        var response = await dio.download(url, partialFilePath,isReGet: true,
             onReceiveProgress: createCallback(url, partialFileLength),
             options: Options(
               headers: {HttpHeaders.rangeHeader: 'bytes=$partialFileLength-'},
@@ -101,13 +101,13 @@ class DownloadManager {
             deleteOnError: false );
 
         if (response.statusCode == HttpStatus.partialContent) {
-          var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
-          var _f = File(partialFilePath + tempExtension);
-          await ioSink.addStream(_f.openRead());
-          await _f.delete();
-          await ioSink.close();
+          // var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
+          // var _f = File(partialFilePath + tempExtension);
+          // await ioSink.addStream(_f.openRead());
+          // await _f.delete();
+          // await ioSink.close();
+          // await partialFile.rename(savePath);
           await partialFile.rename(savePath);
-
           setStatus(task, DownloadStatus.completed);
         }
       } else {
@@ -123,6 +123,7 @@ class DownloadManager {
       }
     } catch (e) {
       var task = getDownload(url)!;
+      print(e.toString());
       if (task.status.value != DownloadStatus.canceled &&
           task.status.value != DownloadStatus.paused) {
         setStatus(task, DownloadStatus.failed);
@@ -198,53 +199,53 @@ class DownloadManager {
 
   // static int bufferSize = 1024*1024*8;
   // List<int> copyBuffer = List<int>.filled(bufferSize, 0);
-  Future tryCombineTempFile(String url) async {
-    var task = getDownload(url);
-    if (task == null || task.status.value == DownloadStatus.canceled || task.status.value == DownloadStatus.completed) {
-      return;
-    }
-    var savePath = task.request.path;
-    if (savePath.isEmpty) return ;
-    var file = File(savePath.toString());
-    var partialFilePath = savePath + partialExtension;
-    var partialFile = File(partialFilePath);
-
-    // var fileExist = await file.exists();
-    var partialFileExist = await partialFile.exists();
-    var _f = File(partialFilePath + tempExtension);
-    if (partialFileExist && _f.existsSync()) {
-      // var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
-      // await ioSink.addStream(_f.openRead());
-      // await _f.delete();
-      // await ioSink.close();
-
-      // var rds = _f.openSync(mode: FileMode.read);
-      // RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
-      // int iLength = 0;
-      // do{
-      //   iLength = rds.readIntoSync(copyBuffer);
-      //   raw.writeFromSync(copyBuffer , 0,iLength);
-      // } while (iLength >0);
-      // rds.closeSync();
-      // raw.flushSync();
-      // raw.closeSync();
-
-      RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
-      raw.writeFromSync(_f.readAsBytesSync());
-      raw.close();
-      _f.deleteSync();
-    }
-  }
+  // Future tryCombineTempFile(String url) async {
+  //   var task = getDownload(url);
+  //   if (task == null || task.status.value == DownloadStatus.canceled || task.status.value == DownloadStatus.completed) {
+  //     return;
+  //   }
+  //   var savePath = task.request.path;
+  //   if (savePath.isEmpty) return ;
+  //   var file = File(savePath.toString());
+  //   var partialFilePath = savePath + partialExtension;
+  //   var partialFile = File(partialFilePath);
+  //
+  //   // var fileExist = await file.exists();
+  //   var partialFileExist = await partialFile.exists();
+  //   var _f = File(partialFilePath + tempExtension);
+  //   if (partialFileExist && _f.existsSync()) {
+  //     // var ioSink = partialFile.openWrite(mode: FileMode.writeOnlyAppend);
+  //     // await ioSink.addStream(_f.openRead());
+  //     // await _f.delete();
+  //     // await ioSink.close();
+  //
+  //     // var rds = _f.openSync(mode: FileMode.read);
+  //     // RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
+  //     // int iLength = 0;
+  //     // do{
+  //     //   iLength = rds.readIntoSync(copyBuffer);
+  //     //   raw.writeFromSync(copyBuffer , 0,iLength);
+  //     // } while (iLength >0);
+  //     // rds.closeSync();
+  //     // raw.flushSync();
+  //     // raw.closeSync();
+  //
+  //     RandomAccessFile raw = partialFile.openSync(mode: FileMode.writeOnlyAppend);
+  //     raw.writeFromSync(_f.readAsBytesSync());
+  //     raw.close();
+  //     _f.deleteSync();
+  //   }
+  // }
   Future<void> pauseDownload(String url) async {
     if (kDebugMode) {
       print("Pause Download");
     }
     var task = getDownload(url)!;
-    setStatus(task, DownloadStatus.paused);
-    task.request.cancelToken.cancel();
+    // setStatus(task, DownloadStatus.paused);
+    task.request.cancelToken.cancel("user_paused");
     _queue.remove(task.request);
 
-    await tryCombineTempFile(url);
+    // await tryCombineTempFile(url);
   }
 
   Future<void> cancelDownload(String url) async {
@@ -252,9 +253,9 @@ class DownloadManager {
       print("Cancel Download");
     }
     var task = getDownload(url)!;
-    setStatus(task, DownloadStatus.canceled);
+    // setStatus(task, DownloadStatus.canceled);
     _queue.remove(task.request);
-    task.request.cancelToken.cancel();
+    task.request.cancelToken.cancel("user_cancel");
   }
 
   Future<void> resumeDownload(String url) async {
@@ -267,12 +268,14 @@ class DownloadManager {
     _queue.add(task.request);
 
     _startExecution();
-  }
 
-  Future<void> removeDownload(String url) async {
-    cancelDownload(url);
     _cache.remove(url);
   }
+
+  // Future<void> removeDownload(String url) async {
+  //   cancelDownload(url);
+  //   _cache.remove(url);
+  // }
 
   // Do not immediately call getDownload After addDownload, rather use the returned DownloadTask from addDownload
   DownloadTask? getDownload(String url) {
