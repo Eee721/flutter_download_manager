@@ -125,18 +125,26 @@ class DownloadManager {
     } catch (e) {
       var task = getDownload(url)!;
       // print(e.toString());
+      var partialFilePath = savePath + partialExtension;
+      var partialFile = File(partialFilePath);
 
       if (e is DioError){
         if (e.error == "user_paused"){
           setStatus(task, DownloadStatus.paused);
         }
         else if (e.error == "user_cancel"){
+          if (partialFile.existsSync()){
+            partialFile.deleteSync();
+          }
           setStatus(task, DownloadStatus.canceled);
+
         }
       }
-
       if (task.status.value != DownloadStatus.canceled &&
           task.status.value != DownloadStatus.paused) {
+        if (partialFile.existsSync()){
+          partialFile.deleteSync();
+        }
         setStatus(task, DownloadStatus.failed);
         runningTasks--;
 
