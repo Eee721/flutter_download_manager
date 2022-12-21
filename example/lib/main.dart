@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   var file = File(fileName);
                   file.delete();
 
-                  downloadManager.removeDownload(url);
+                  // downloadManager.removeDownload(url);
                   setState(() {});
                 },
                 url: url,
@@ -116,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   var file = File(fileName);
                   file.delete();
 
-                  downloadManager.removeDownload(url);
+                  // downloadManager.removeDownload(url);
                   setState(() {});
                 },
                 url: url2,
@@ -155,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         var file = File(fileName);
                         file.delete();
 
-                        downloadManager.removeDownload(url);
+                        // downloadManager.removeDownload(url);
                         setState(() {});
                       },
                       url: url3,
@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         var file = File(fileName);
                         file.delete();
 
-                        downloadManager.removeDownload(url);
+                        // downloadManager.removeDownload(url);
                         setState(() {});
                       },
                       url: url4,
@@ -217,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         var file = File(fileName);
                         file.delete();
 
-                        downloadManager.removeDownload(url);
+                        // downloadManager.removeDownload(url);
                         setState(() {});
                       },
                       url: url5,

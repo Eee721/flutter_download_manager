@@ -256,6 +256,8 @@ class DownloadManager {
     // setStatus(task, DownloadStatus.canceled);
     _queue.remove(task.request);
     task.request.cancelToken.cancel("user_cancel");
+
+    _cache.remove(url);
   }
 
   Future<void> resumeDownload(String url) async {
@@ -268,8 +270,6 @@ class DownloadManager {
     _queue.add(task.request);
 
     _startExecution();
-
-    _cache.remove(url);
   }
 
   // Future<void> removeDownload(String url) async {
