@@ -14,7 +14,7 @@ class DownloadManager {
   static const partialExtension = ".partial";
   static const tempExtension = ".temp";
 
-
+  int globalBandwidth = 0;
   // var tasks = StreamController<DownloadTask>();
 
   int maxConcurrentTasks = 2;
@@ -32,26 +32,26 @@ class DownloadManager {
   }
 
 
-  void Function(int, int) createCallback(url, int partialFileLength) {
-    int _speedCount = 0;
-    int _speed = 0;
-    var timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _speed = _speedCount;
-      _speedCount = 0 ;
-    });
-    var lastReceived = 0;
-    var res =  (int received, int total) {
-      _speedCount += (received - lastReceived);
-      lastReceived = received;
+  void Function(int, int ,int) createCallback(url, int partialFileLength) {
+    // int _speedCount = 0;
+    // int _speed = 0;
+    // var timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    //   _speed = _speedCount;
+    //   _speedCount = 0 ;
+    // });
+    // var lastReceived = 0;
+    var res =  (int received, int total , int _downloadSpeed) {
+      // _speedCount += (received - lastReceived);
+      // lastReceived = received;
 
       getDownload(url)?.progress.value =
           (received + partialFileLength) / (total + partialFileLength);
       // print(_speed);
-      getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total , _speed>0?_speed:_speedCount);
+      getDownload(url)?.onReceived?.call(total + partialFileLength, received + partialFileLength,received,total , _downloadSpeed);
 
-      if (received >= total){
-        timer.cancel();
-      }
+      // if (received >= total){
+      //   timer.cancel();
+      // }
       if (total == -1) {}
     };
 
@@ -60,7 +60,7 @@ class DownloadManager {
 
 
   Future<void> download(String url, String savePath, cancelToken,
-      {forceDownload = false}) async {
+      {forceDownload = false , int bandwidth = 0}) async {
     try {
       var task = getDownload(url);
 
@@ -93,7 +93,7 @@ class DownloadManager {
 
         var partialFileLength = await partialFile.length();
 
-        var response = await dio.download(url, partialFilePath,isReGet: true,
+        var response = await dio.download(url, partialFilePath,isReGet: true, bandwidth: bandwidth,
             onReceiveProgress: createCallback(url, partialFileLength),
             options: Options(
               headers: {HttpHeaders.rangeHeader: 'bytes=$partialFileLength-'},
@@ -112,7 +112,7 @@ class DownloadManager {
           setStatus(task, DownloadStatus.completed);
         }
       } else {
-        var response = await dio.download(url, partialFilePath,
+        var response = await dio.download(url, partialFilePath,bandwidth: bandwidth,
             onReceiveProgress: createCallback(url, 0),
             cancelToken: cancelToken,
             deleteOnError: false);
@@ -428,7 +428,7 @@ class DownloadManager {
       var currentRequest = _queue.removeFirst();
 
       download(
-          currentRequest.url, currentRequest.path, currentRequest.cancelToken);
+          currentRequest.url, currentRequest.path, currentRequest.cancelToken , bandwidth: globalBandwidth);
 
       await Future.delayed(Duration(milliseconds: 500), null);
     }
