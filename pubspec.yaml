@@ -14,7 +14,7 @@ dependencies:
     git:
       url: https://github.com/Eee721/dio.git
       path: ./dio
-      ref: a9b05f4d04a373255eb59e02662ded317feab2ae
+      ref: bbf6b144e972f1d8acfad6776dca94dff559e924
 
   collection:
 
