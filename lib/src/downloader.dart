@@ -142,9 +142,10 @@ class DownloadManager {
       }
       if (task.status.value != DownloadStatus.canceled &&
           task.status.value != DownloadStatus.paused) {
-        if (partialFile.existsSync()){
-          partialFile.deleteSync();
-        }
+        //不去删除
+        // if (partialFile.existsSync()){
+        //   partialFile.deleteSync();
+        // }
         setStatus(task, DownloadStatus.failed);
         runningTasks--;
 
