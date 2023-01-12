@@ -266,10 +266,10 @@ class DownloadManager {
     _startExecution();
   }
 
-  // Future<void> removeDownload(String url) async {
-  //   cancelDownload(url);
-  //   _cache.remove(url);
-  // }
+  Future<void> removeDownload(String url) async {
+    // cancelDownload(url);
+    _cache.remove(url);
+  }
 
   // Do not immediately call getDownload After addDownload, rather use the returned DownloadTask from addDownload
   DownloadTask? getDownload(String url) {
