@@ -247,11 +247,11 @@ class DownloadManager {
     var task = getDownload(url)!;
     // setStatus(task, DownloadStatus.canceled);
     if (DownloadStatus.downloading == task.status.value){
-      // _queue.remove(task.request);
+      _queue.remove(task.request);
       task.request.cancelToken.cancel("user_cancel");
     }
 
-    _cache.remove(url);
+    // _cache.remove(url);
   }
 
   Future<void> resumeDownload(String url) async {
