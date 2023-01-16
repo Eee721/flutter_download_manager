@@ -152,6 +152,10 @@ class DownloadManager {
         if (_queue.isNotEmpty) {
           _startExecution();
         }
+
+        if (task.status.value != DownloadStatus.canceled){
+          removeDownload(url);
+        }
         rethrow;
       }
     }
@@ -243,7 +247,7 @@ class DownloadManager {
     var task = getDownload(url)!;
     // setStatus(task, DownloadStatus.canceled);
     if (DownloadStatus.downloading == task.status.value){
-      _queue.remove(task.request);
+      // _queue.remove(task.request);
       task.request.cancelToken.cancel("user_cancel");
     }
 
